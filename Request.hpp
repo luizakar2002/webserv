@@ -3,21 +3,18 @@
 
 # include <iostream>
 # include <map>
+# include <HTTP.hpp>
 
-class Request
+class Request: public HTTP
 {
     private:
-        std::string request;
+        std::string raw_request;
         std::string method;
         std::string uri;
-        std::string version;
-        int         status_code;
-        std::map<std::string, std::string>  headers_map;
-        std::string body;
         Request();
     public:
-        Request(std::string request);
-        ~Request();
+        Request(std::string raw_request);
+        virtual ~Request();
 
         const std::string &get_method();
         const std::string &get_uri();
@@ -30,9 +27,9 @@ class Request
         void    set_version(const std::string &);
         void    set_body(const std::string &);
 
-        void    parse_first_line(std::string request);
-        void    parse_headers(std::string request);
-        void    parse_body(std::string request);
+        void    parse_first_line(std::string raw_request);
+        void    parse_headers(std::string raw_request);
+        void    parse_body(std::string raw_request);
 };
 
 #endif

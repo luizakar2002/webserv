@@ -1,21 +1,20 @@
 #include <iostream>
 #include <sys/socket.h>
+#include <sys/event.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <fcntl.h>
 
-int main()
+const int PORT = 8080;
+
+int socket_listen()
 {
-    int server_fd, new_fd;
-    long count;
+    int server_fd;
     struct sockaddr_in addr;
     int len;
-    const int PORT = 8080;
-
     len = sizeof(addr);
-    char *msg = (char *)"HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 56\n\n<html>\n<body>\n<h1>Hello from server</h1>\n</body>\n</html>";
     memset((char *)&addr, 0, len);
     addr.sin_family = AF_INET;
     addr.sin_port = htons(PORT);
@@ -37,6 +36,20 @@ int main()
         perror("cannot listen");
         exit(3);
     }
+    return server_fd;
+}
+
+int main()
+{
+    int server_fd, new_fd;
+    long count;
+
+    char *msg = (char *)"HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 56\n\n<html>\n<body>\n<h1>Hello from server</h1>\n</body>\n</html>";
+    server_fd = socket_listen();
+    int kq = kqueue();
+    struct kevent ev_set;
+    EV_SET(&ev_set, server_fd, EVFILT_READ, EV_ADD | EV_CLEAR, 0, 0, NULL);
+    kevent(kq, &ev_set, 1, NULL, 0, NULL);
     while (1)
     {
         new_fd = accept(server_fd, (struct sockaddr *)&addr, (socklen_t *)&len);
