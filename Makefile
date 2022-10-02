@@ -1,6 +1,6 @@
 NAME	= webserv
 
-SRCS	= ${wildcard *.cpp}
+SRCS	= ${wildcard *.cpp} ${wildcard */*.cpp}
 OBJS	= ${SRCS:.cpp=.o}
 CC		= c++
 #CFLAGS	= -Wall -Wextra -Werror -std=c++98
