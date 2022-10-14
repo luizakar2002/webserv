@@ -1,7 +1,10 @@
 # include "Server.hpp"
 
-ns::Server::Server(int &domain, int &type, int &protocol, int &port, u_long &interface, int &b_log): SimpleServer(domain, type, protocol, port, interface, b_log)
+ns::Server::Server(server_params &s_params, const std::string &ip_port_str, std::vector<Config> &configs_vector): SimpleServer(s_params.domain, s_params.type, s_params.protocol, s_params.port, s_params.interface, s_params.b_log)
 {
+    // be careful here, no assignement operator overload in Config.hpp
+    ip_port = ip_port_str;
+    configs = configs_vector;
     client_addr_len = sizeof(client_addr);
     struct sockaddr_in address = get_socket()->get_address();
     int addrlen = sizeof(address);
@@ -39,14 +42,33 @@ void    ns::Server::handler(int &event_fd)
         std::cout << "error in recv()" << std::endl;
         exit(3);
     }
-    Request request = Request(std::string(buf));
-    printf("%s\n", buf);
-    responder(event_fd); //, request);
+    Request *request = new Request(std::string(buf));
+    if (configs.size() > 1)
+    {
+
+        responder(event_fd, request, configs);
+    }
+    responder(event_fd, request);
 }
 
-void    ns::Server::responder(int &event_fd)
+void    ns::Server::responder(int &event_fd, Request *request)
 {
-    Response response = Response();
+    Response response = Response(request);
+    std::cout << response.get_c_response() << "\n\n";
+    send(event_fd, response.get_c_response(), strlen(response.get_c_response()), 0);
+}
+
+void    ns::Server::responder(int &event_fd, Request *request, std::vector<Config> &configs)
+{
+    std::cout << "\n\nresponder overload\n\n";
+    // iterate over configs to find matching server_name with request.get_headers()["Host:"], execute server with that server_params with that conf, if not found matching config, handle response with this default server
+    // std::vector<Config>::iterator conf = configs.begin();
+    // while (conf != configs.end())
+    // {
+
+    // }
+    Response response = Response(request);
+    std::cout << response.get_c_response() << "\n\n";
     send(event_fd, response.get_c_response(), strlen(response.get_c_response()), 0);
 }
 

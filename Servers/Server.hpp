@@ -11,6 +11,9 @@
 # include <unistd.h>
 # include "../Request.hpp"
 # include "../Response.hpp"
+# include "../Config/Configs.hpp"
+# include "../Utils/Utils.hpp"
+// # include "../Webserv.hpp"
 
 
 namespace ns
@@ -18,6 +21,8 @@ namespace ns
     class Server: SimpleServer
     {
         private:
+            std::string             ip_port; // not needed, may be removed cause port is in server_params
+            std::vector<Config>     configs; // vector of configs with same ip_port
             struct  sockaddr_in     client_addr; //?
             int                     client_addr_len;
             int                     accept_fd;
@@ -26,9 +31,10 @@ namespace ns
             struct  kevent          event[33];
             void                    accepter(int &);
             void                    handler(int &);
-            void                    responder(int &);
+            void                    responder(int &, Request *);
+            void                    responder(int &, Request *, std::vector<Config> &); //in case of not unique configs
         public:
-            Server(int &, int &, int &, int &, u_long &, int &);
+            Server(server_params &, const std::string &, std::vector<Config> &);
             virtual ~Server();
 
             void    launch_server();

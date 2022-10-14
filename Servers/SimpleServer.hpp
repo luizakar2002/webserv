@@ -3,6 +3,7 @@
 
 // # include "../Webserv.hpp"
 # include "../Sockets/Sockets.hpp"
+# include "../Request.hpp"
 
 namespace ns
 {
@@ -12,7 +13,7 @@ namespace ns
             ListeningSocket *socket;
             virtual void accepter(int &) = 0;
             virtual void handler(int &) = 0;
-            virtual void responder(int &) = 0;
+            virtual void responder(int &, Request *) = 0;
         public:
             SimpleServer(int &, int &, int &, int &, u_long &, int &);
             virtual ~SimpleServer();

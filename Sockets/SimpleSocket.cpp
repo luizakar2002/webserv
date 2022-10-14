@@ -2,8 +2,10 @@
 
 ns::SimpleSocket::SimpleSocket(int &domain, int &type, int &protocol, int &port, u_long &interface)
 {
+    int opt = 1;
     init_addr(domain, type, port, interface);
     sock_fd = socket(domain, type, protocol);
+    setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     test_connection(sock_fd);
 }
 

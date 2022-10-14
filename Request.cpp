@@ -1,5 +1,9 @@
 #include "Request.hpp"
 
+Request::Request()
+{
+}
+
 Request::Request(std::string raw_request): HTTP()
 {
     this->raw_request = raw_request;
@@ -12,6 +16,14 @@ Request::Request(std::string raw_request): HTTP()
 
 Request::~Request()
 {
+}
+
+Request &Request::operator=(const Request   &other)
+{
+    raw_request = other.raw_request;
+    method = other.method;
+    uri = other.uri;
+    return *this;
 }
 
 void    Request::parse_first_line(std::string raw_request)
