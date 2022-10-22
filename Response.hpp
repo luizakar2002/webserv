@@ -2,6 +2,7 @@
 # define RESPONSE_HPP
 
 # include "Request.hpp"
+# include "Config/Configs.hpp"
 #include <fstream>
 #include <sstream>
 
@@ -14,9 +15,10 @@ class Response: public HTTP
         std::string     phrase;
         std::string     content;
         Request         *request;
+        Config          config;
         Response();
     public:
-        Response(Request *); // will be needed later
+        Response(Request *, Config &); // will be needed later
         virtual ~Response();
 
         void            fill_phrase();

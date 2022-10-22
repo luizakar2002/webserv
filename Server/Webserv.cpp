@@ -162,7 +162,7 @@ int		Webserv::request_handler(struct kevent *curr_event)
 
 void	Webserv::response_maker(int event_fd, Request *request)
 {
-	Response response = Response(request);
+	Response response = Response(request, *(configs.begin())); // default server
     std::cout << response.get_c_response() << "\n\n";
     send(event_fd, response.get_c_response(), strlen(response.get_c_response()), 0);
 	free(request);
@@ -170,14 +170,33 @@ void	Webserv::response_maker(int event_fd, Request *request)
 
 void    Webserv::response_maker(int event_fd, Request *request, std::vector<Config> &configs)
 {
+	Response response = Response(request, *(configs.begin())); //default server;
     std::cout << "\n\nresponder overload\n\n";
-    // iterate over configs to find matching server_name with request.get_headers()["Host:"], execute server with that server_params with that conf, if not found matching config, handle response with this default server
-    // std::vector<Config>::iterator conf = configs.begin();
-    // while (conf != configs.end())
-    // {
+    std::vector<Config>::iterator conf = configs.begin();
 
-    // }
-    Response response = Response(request);
+    while (conf != configs.end())
+    {
+		std::string host;
+		std::vector<std::string> server_names;
+
+		std::map<std::string, std::string>::const_iterator it = request->get_headers().find("Host:");
+		prop_map::const_iterator it_prop_map = conf->get_map().find("server_name");
+		std::vector<std::string>::iterator matching_server_name = std::find(server_names.begin(), server_names.end(), host);
+
+		if (it != request->get_headers().end())
+			host = it->second;
+		if (it_prop_map != conf->get_map().end())
+			server_names = it_prop_map->second;
+		if (matching_server_name != server_names.end())
+			break ;
+		++conf;
+    }
+	if (conf != configs.end())
+	{
+		response = Response(request, *conf);
+		prop_map::const_iterator it_prop_map = conf->get_map().find("index");
+		std::cout << "INDEX OF CONF: " << *(it_prop_map->second).begin();
+	}
     std::cout << response.get_c_response() << "\n\n";
     send(event_fd, response.get_c_response(), strlen(response.get_c_response()), 0);
 }

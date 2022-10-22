@@ -1,11 +1,12 @@
 #include "Response.hpp"
 
-Response::Response(Request *request)
+Response::Response(Request *request, Config &conf)
 {
     // this->status_code needs to be taken from request as well
     this->version = "HTTP/1.1 ";
     this->request = request;
-
+    this->config = config;
+    
     fill_phrase();
     fill_status_line();
     check_static(); //read and store content then fill headers
