@@ -3,18 +3,15 @@
 
 # include "SimpleSocket.hpp"
 
-namespace ns
+class BindingSocket: public SimpleSocket
 {
-    class BindingSocket: public SimpleSocket
-    {
-        private:
-            int binding;
-        public:
-            BindingSocket(int &, int &, int &, int &, u_long &);
-            virtual ~BindingSocket();
+    private:
+        int binding;
+    public:
+        BindingSocket(int &, int &, int &, int &, u_long &);
+        virtual ~BindingSocket();
 
-            void    connect_to_network(int &, struct sockaddr_in &);
-    };
-}
+        void    connect_to_network(int &, struct sockaddr_in &);
+};
 
 #endif

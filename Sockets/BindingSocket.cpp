@@ -1,6 +1,6 @@
 # include "BindingSocket.hpp"
 
-ns::BindingSocket::BindingSocket(int &domain, int &type, int &protocol, int &port, u_long &interface): SimpleSocket(domain, type, protocol, port, interface)
+BindingSocket::BindingSocket(int &domain, int &type, int &protocol, int &port, u_long &interface): SimpleSocket(domain, type, protocol, port, interface)
 {
     int sock_fd = get_socket_fd();
     struct sockaddr_in address = get_address();
@@ -8,12 +8,12 @@ ns::BindingSocket::BindingSocket(int &domain, int &type, int &protocol, int &por
     test_connection(binding);
 }
 
-ns::BindingSocket::~BindingSocket()
+BindingSocket::~BindingSocket()
 {
     
 }
 
-void    ns::BindingSocket::connect_to_network(int &sock_fd, struct sockaddr_in &address)
+void    BindingSocket::connect_to_network(int &sock_fd, struct sockaddr_in &address)
 {
     binding = bind(sock_fd, (struct sockaddr *)&address, sizeof(address));
 }

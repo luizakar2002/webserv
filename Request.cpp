@@ -51,15 +51,23 @@ void    Request::parse_headers(std::string raw_request)
     std::string header;
     std::string key;
     std::map<std::string, std::string>::iterator it;
+    int host_header_count;
 
     std::string headers = raw_request.erase(0, raw_request.substr(0, raw_request.find("\r\n")).size() + 2);
+    host_header_count = 0;
     while ((header = headers.substr(0, headers.find("\r\n"))) != "")
     {
         headers.erase(0, header.size() + 2);
         key = header.substr(0, header.find_first_of(':'));
-        header.erase(0, key.size() + 2); //+2 for ':' and ' ' 
+        if (key == "Host")
+            host_header_count++;
+        header.erase(0, key.size() + 2); //+2 for ':' and ' '
+        if (header.empty())
+            host_header_count = -1;
         this->headers_map.insert(std::pair<std::string, std::string>(key, header));
     }
+    if (host_header_count != 1)
+        this->status_code = 400; //Bad request: many Host, no Host or Host value_field is empty (here checks if there is at least one empty value_field)
     for (it = this->headers_map.begin(); it != this->headers_map.end(); it++)
         std::cout << "{" << it->first << ": " << it->second << "}" << std::endl;
 }
