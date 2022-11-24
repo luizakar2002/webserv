@@ -33,20 +33,21 @@ class Config{
         Config();
         Config(std::string arg, string locations);
         
-        const prop_map  &get_map()const;
-        error_page      get_errors()const;
-        void            string_to_map();
-        void            add_error(string key, string arg);
-        void            parse_locations(string locations, string arg);
-        void            fill_location_paths(vector<string> &loc_list);
-        void            fill_location_map(vector<string> loc_list);
-        void            fill_locs_arr1(vector<string> loc_list, string locs);
-        void            fill_locs_arr2(string location, int loc_index);
-        void            useLocations();
-        void            fillaret(std::vector<location_str>::iterator iter, Location &temp_loc);
-        void            splitndestroy(string loc, string temp1);
-        Location        jdi_menya(string s);
-        void            add_error_to_location(string key, string arg, Location &loc_temp);
+        const prop_map          &get_map()const;
+        std::vector<Location>   get_locations()const;
+        error_page              get_errors()const;
+        void                    string_to_map();
+        void                    add_error(string key, string arg);
+        void                    parse_locations(string locations, string arg);
+        void                    fill_location_paths(vector<string> &loc_list);
+        void                    fill_location_map(vector<string> loc_list);
+        void                    fill_locs_arr1(vector<string> loc_list, string locs);
+        void                    fill_locs_arr2(string location, int loc_index);
+        void                    useLocations();
+        void                    fillaret(std::vector<location_str>::iterator iter, Location &temp_loc);
+        void                    splitndestroy(string loc, string temp1);
+        Location                jdi_menya(string s);
+        void                    add_error_to_location(string key, string arg, Location &loc_temp);
         
 
         ~Config();

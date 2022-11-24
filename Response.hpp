@@ -3,8 +3,10 @@
 
 # include "Request.hpp"
 # include "Config/Configs.hpp"
-#include <fstream>
-#include <sstream>
+# include "Cgi/Cgi_headers.hpp"
+# include <unistd.h>
+# include <fstream>
+# include <sstream>
 
 class Response: public HTTP
 {
@@ -27,7 +29,8 @@ class Response: public HTTP
         // void            fill_body();
         char            *get_c_response();
         void            fill_static_content();
-        int             check_static();
+        int             hasExt();
+        void             serve_non_static(std::string);
         void            open_static(std::string file);
 };
 

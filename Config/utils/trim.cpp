@@ -34,12 +34,7 @@ void removeSpaces(string &str)
         {
             // remove preceding spaces before dot,
             // comma & question mark
-            if ((str[j] == '.' || str[j] == ',' ||
-                 str[j] == '?') && i - 1 >= 0 &&
-                 str[i - 1] == ' ')
-                str[i - 1] = str[j++];
- 
-            else
+            
                 // copy current character at index i
                 // and increment both i and j
                 str[i++] = str[j++];

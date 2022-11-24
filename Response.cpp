@@ -5,11 +5,17 @@ Response::Response(Request *request, Config &conf)
     // this->status_code needs to be taken from request as well
     this->version = "HTTP/1.1 ";
     this->request = request;
-    this->config = config;
-    
+    this->config = conf;
+    prop_map map = this->config.get_map();
+    const std::string prop = "listen";
+    std::vector<std::string>::iterator vect = map[prop].begin();
+
+    std::cout << "in RESPONSE CTOR, listen directive of current config: " << *vect << std::endl << std::endl << std::endl << std::endl << std::endl << std::endl << std::endl << std::endl << std::endl << std::endl;
+
     fill_phrase();
     fill_status_line();
-    check_static(); //read and store content then fill headers
+    hasExt();
+    // check_static(); //read and store content then fill headers
     fill_headers();
 
     // fill_body();
@@ -39,6 +45,8 @@ void    Response::fill_status_line()
 
 void    Response::fill_headers()
 {
+    std::cout << "zibilik" << std::endl;
+    std::cout << "->" << raw_response << "<- "<<  std::endl;
     this->raw_response += "Content-Type: text/html\nContent-Length: ";//<html>\n<body>\n<h1>Hello from server</h1>\n</body>\n</html>";
     this->raw_response += std::to_string(this->content.size()) + "\n\n";
     this->raw_response += this->content;
@@ -50,6 +58,28 @@ void    Response::fill_headers()
 // {
 
 // }
+
+void    Response::serve_non_static(std::string file_uri)
+{
+
+    std::vector<std::string> cgi_pass = config.get_map().find("cgi_pass")->second;
+
+    std::cout << "CGI STUFF\n";
+    std::string cgi_ext = "";
+    std::string cgi_path = "";
+
+    
+    if (cgi_pass.size() == 2)
+    {
+        cgi_ext = cgi_pass.at(0);
+        cgi_path = cgi_pass.at(1);
+    }
+    else
+    {
+        // 500 to be returned
+    } 
+    CGI cgi(cgi_ext, cgi_path, file_uri, &config, request);
+}
 
 void   Response::open_static(std::string file)
 {
@@ -79,23 +109,25 @@ void   Response::open_static(std::string file)
 }
 
 
-int Response::check_static()
+int Response::hasExt()
 {
     std::string temp, uri = this->request->get_uri();
     size_t match = 0;
 
     std::cout << "URI: " << uri << "\n";
     std::cout << "\n\nCHECK_STATIC\n" << this->request->get_uri().size() << "\n\n";
-    if ((match = uri.find_first_of("?", 0)) < uri.size())
-    {
+    if (((match = uri.find_first_of("?", 0)) < uri.size()))
         uri.erase(match, uri.size() - match);
-    }
-    match = uri.find_last_of(".");
-    temp = uri.substr(match + 1, uri.size() - match);
-    if (temp == "html" || temp == "htm")
+    if ((match = uri.find_last_of(".")) > uri.find_last_of("/"))
     {
-        std::cout << "URI: " << uri << "\n";
-        open_static(uri);
+        temp = uri.substr(match + 1, uri.size() - match);
+        if (temp == "html" || temp == "htm")
+        {
+            std::cout << "URI: " << uri << "\n";
+            open_static(uri);
+            return (1);
+        }
     }
+    serve_non_static(uri);
     return 0;
 }

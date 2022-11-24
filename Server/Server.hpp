@@ -19,6 +19,7 @@ class Server: public AFd
         ListeningSocket         *socket;
         int                     _server_fd;
         std::string             _serverName; //***
+        std::string             _ip_port;
         std::string             _ip; // not needed, may be removed cause port is in server_params
         int                     _port;
         std::vector<Config>     configs; // vector of configs with same ip_port, no need to keep _locationMap
@@ -37,6 +38,7 @@ class Server: public AFd
         //***
         const std::string 				&getServerName() const;
         const int                       &get_server_fd() const;
+        const std::string 				&getIpPort() const;
         const std::string 				&getIp() const;
         const int        				&getPort() const;
         std::vector<Config>             &getConfig();

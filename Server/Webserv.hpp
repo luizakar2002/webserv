@@ -39,6 +39,7 @@ class Webserv
 		std::vector<AFd *>			_fd_pool;
 		unsigned long 				_timeout;
 		std::vector<Config>			configs;
+		std::map<int, std::string>	_fd_ip_port; //added 14
 		unique_configs				unique_config_vectors; //map of ip::port and config
 
 	public:

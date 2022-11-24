@@ -71,6 +71,9 @@ void    Webserv::seperate_configs()
         }
         conf++;
     }
+	std::cout << "IN SEPERATE CONFIGS correctly seperated\n";
+	std::cout << unique_config_vectors.begin()->first << std::endl;
+	std::cout << unique_config_vectors.rbegin()->first<< std::endl;
 	std::cout << "end seperate configs"<< std::endl;
 
 }
@@ -83,7 +86,6 @@ void	Webserv::start_server()
 		ft_error("kqueue error");
 
     unique_configs::iterator it = unique_config_vectors.begin();
-	std::cout << "start start_server unique_config_vectors.size()"<< unique_config_vectors.size() << std::endl;
     while (it != unique_config_vectors.end())
     {
         server_params s_params = server_params(it->first);
@@ -91,6 +93,7 @@ void	Webserv::start_server()
 		std::cout << s->get_server_fd() << std::endl;
         change_events(_change_list, s->get_server_fd(), EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
         _fd_pool[s->get_server_fd()] = s;
+		_fd_ip_port[s->get_server_fd()] = s->getIpPort();
         it++;
     }
 	run_server();
@@ -123,6 +126,8 @@ int		Webserv::accept_client(struct kevent *curr_event)
 
 	Client	*client = new Client((dynamic_cast<Server *>(_fd_pool[serv_fd])), client_sock);
 	_fd_pool[client_sock] = client;
+	std::cout << "client_sock fd in accept_client: " << client_sock << std::endl;
+	_fd_ip_port[client_sock] = _fd_ip_port[serv_fd]; //to keep track of ip_port of clients too, as server's is done, to know which port the request is sent in response_maker 
 	return 0;
 }
 
@@ -133,6 +138,8 @@ int		Webserv::request_handler(struct kevent *curr_event)
 	client->setLastTime(getTime());
 	char	buf[BUFSIZE];
 	int 	n;
+	std::string		current_ip_port;
+
 	memset(buf, 0, BUFSIZE);
 	if ((n = recv(curr_event->ident, buf, BUFSIZE - 1, 0)) == -1)
 	{
@@ -153,7 +160,12 @@ int		Webserv::request_handler(struct kevent *curr_event)
 		Request *request = new Request(std::string(buf));
 		if (configs.size() > 1)
 		{
-			response_maker(_fd_pool[curr_event->ident]->getFd(), request, configs);
+			std::cout << curr_event->ident << std::endl;
+			current_ip_port = _fd_ip_port[curr_event->ident]; //added 14
+			// current_ip_port = _fd_pool[curr_event->ident];
+			std::cout << "ip_port of request: " << current_ip_port << std::endl;
+			std::cout << unique_config_vectors[current_ip_port].at(0).get_map().begin()->first; //just to check that unique_config_vectors[current_ip_port] is accessable
+			response_maker(_fd_pool[curr_event->ident]->getFd(), request, unique_config_vectors[current_ip_port]);
 		}
 		response_maker(_fd_pool[curr_event->ident]->getFd(), request);
 	}
@@ -171,31 +183,45 @@ void	Webserv::response_maker(int event_fd, Request *request)
 void    Webserv::response_maker(int event_fd, Request *request, std::vector<Config> &configs)
 {
 	Response response = Response(request, *(configs.begin())); //default server;
-    std::cout << "\n\nresponder overload\n\n";
     std::vector<Config>::iterator conf = configs.begin();
+
+	//CHECKING if seperating config vectors for each requests works
+	std::cout << "CHECKING\n";
+	prop_map map = configs.begin()->get_map();
+    const std::string prop = "listen";
+    std::vector<std::string>::iterator vect = map[prop].begin();
+	std::cout << request->get_raw_request() << "_____" << *vect << std::endl;
+
+	std::cout << "config size in response_maker overload: " << configs.size();
+	//end of CHECKING
 
     while (conf != configs.end())
     {
 		std::string host;
 		std::vector<std::string> server_names;
 
-		std::map<std::string, std::string>::const_iterator it = request->get_headers().find("Host:");
-		prop_map::const_iterator it_prop_map = conf->get_map().find("server_name");
-		std::vector<std::string>::iterator matching_server_name = std::find(server_names.begin(), server_names.end(), host);
+		std::vector<std::string>::iterator matching_server_name;
+		std::map<std::string, std::string>::const_iterator iterator_on_host_header = request->get_headers().find("Host:"); //e.g. localhost:8080
+		prop_map::const_iterator iterator_on_server_name_of_config = conf->get_map().find("server_name");
 
-		if (it != request->get_headers().end())
-			host = it->second;
-		if (it_prop_map != conf->get_map().end())
-			server_names = it_prop_map->second;
+		// server_names = iterator_on_server_name_of_config->second;
+		if (iterator_on_host_header != request->get_headers().end())
+			host = iterator_on_host_header->second;
+		if (iterator_on_server_name_of_config != conf->get_map().end())
+		{
+			server_names = iterator_on_server_name_of_config->second;
+			matching_server_name = std::find(server_names.begin(), server_names.end(), host);
+		}
 		if (matching_server_name != server_names.end())
 			break ;
 		++conf;
     }
 	if (conf != configs.end())
 	{
+		std::cout << "IN IF" << std::endl;
 		response = Response(request, *conf);
-		prop_map::const_iterator it_prop_map = conf->get_map().find("index");
-		std::cout << "INDEX OF CONF: " << *(it_prop_map->second).begin();
+		prop_map::const_iterator iterator_on_server_name_of_config = conf->get_map().find("index");
+		std::cout << "INDEX OF CONF: " << *(iterator_on_server_name_of_config->second).begin();
 	}
     std::cout << response.get_c_response() << "\n\n";
     send(event_fd, response.get_c_response(), strlen(response.get_c_response()), 0);

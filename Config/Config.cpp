@@ -146,7 +146,12 @@ void Config::fill_locs_arr1(vector<string> loc_list, string locs)
 		loc_strs.push_back(temp_struct);
 		locs.erase(new_pos, close_pos - new_pos + 1);
 		if (temp_pos == locs.npos)
+		{
+			temp_struct.level = 1;
+			temp_struct.loc = locs;
+			loc_strs.push_back(temp_struct);
 			break;
+		}
 		temp_pos = 0;
 		new_pos = 0;
 		pos = locs.find("location ", 0) + 9;
@@ -327,6 +332,11 @@ const prop_map &Config::get_map()const
 error_page Config::get_errors()const
 {
 	return this->error_pages;
+}
+
+std::vector<Location> Config::get_locations()const
+{
+	return this->locations;
 }
 
 void Config::add_error(string key, string arg)

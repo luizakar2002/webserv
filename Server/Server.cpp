@@ -12,8 +12,10 @@ Server::Server(server_params &s_params, const std::string &ip_port_str, std::vec
     _fd_type = FD_SERVER;
     _server_fd = socket->get_socket_fd();
 	setFd(_server_fd); // to set _fd of AFd, not sure if _server_fd is needed anymore
+	_ip_port = ip_port_str;
 	_ip = ip_port_str.substr(0, ip_port_str.find_first_of(':'));
     _port = s_params.port;
+	std::cout << "PORT ->>>" << _port << std::endl;
     // be careful here, no assignement operator overload in Config.hpp
     configs = configs_vector;
     client_addr_len = sizeof(client_addr);
@@ -73,6 +75,11 @@ const std::string	&Server::getServerName() const
 const std::string	&Server::getIp() const
 {
 	return _ip;
+}
+
+const std::string	&Server::getIpPort() const
+{
+	return _ip_port;
 }
 
 const int	&Server::getPort() const

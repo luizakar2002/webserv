@@ -78,6 +78,11 @@ void    Request::parse_body(std::string raw_request)
     std::cout << "body: " << this->body << std::endl;
 }
 
+const std::string &Request::get_raw_request()
+{
+    return this->raw_request;
+}
+
 const std::string &Request::get_method()
 {
     return this->method;

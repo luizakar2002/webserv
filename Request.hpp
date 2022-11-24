@@ -17,6 +17,7 @@ class Request: public HTTP
         virtual ~Request();
 
         Request &operator=(const Request &);
+        const std::string &get_raw_request();
         const std::string &get_method();
         const std::string &get_uri();
         const std::string &get_version();
