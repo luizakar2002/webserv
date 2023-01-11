@@ -2,8 +2,8 @@ NAME	= webserv
 
 SRCS	= ${wildcard *.cpp} ${wildcard */*.cpp} ${wildcard */*/*.cpp}
 OBJS	= ${SRCS:.cpp=.o}
-CC		= c++ #-fsanitize=address -ggdb3 -g
-#CFLAGS	= -Wall -Wextra -Werror -std=c++98
+CC		= c++
+CFLAGS	=
 RM		= rm -rf
 
 all: ${NAME}

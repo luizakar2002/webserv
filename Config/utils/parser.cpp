@@ -87,7 +87,23 @@ int split_servers(string &cont, vector<Config> &servers)
         locations = get_locs_out(ret);
         Config s(ret, locations);
         s.string_to_map();
-        
+        int j = 0;
+        // std::vector<Location>::iterator m1 = s.get_locations().begin();
+	    // while(m1 != s.get_locations().end())
+	    // {   
+        //     std::cout << "Path is === >" << m1->get_path() << "<\nMap is:\n";
+        //     print_map(m1->get_props());
+	    // }
+        s.create_root_location();
+        // std::cout << s.get_locations().size() << "\n\n\n\n";
+        // while(j < s.get_locations().size())
+		// {
+        //     std::cout << "Path === " << s.get_locations()[j].get_path() << ": \n";
+		// 	print_map(s.get_locations()[j].get_props());
+		// 	std::cout << " ======================= \n";
+		// 	++j;
+		// }
+           
         if (cont.length() - i != 1)
             cont.erase(0, cont.find("server {", i, 8));
         else

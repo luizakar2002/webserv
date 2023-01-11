@@ -1,17 +1,31 @@
+#include <unistd.h>
 #include "./Configs.hpp"
 
 static prop_map def_props()
 {
 	prop_map props;
 	std::vector<string> props_list;
+	char path[1024];
+
+	getcwd(path, 1024);
+	std::string temp = std::string(path);
+	if (isDirectory(std::string(path) + "/www"))
+		temp += "/www";
 
 	props_list.push_back("80");
 	props["listen"] = props_list;
 	props_list.clear();
 
-	props_list.push_back("index.html");
-	props_list.push_back("index.htm");
-	props["index"] = props_list;
+	props_list.push_back("1025");
+	props["client_max_body_size"] = props_list;
+	props_list.clear();
+
+	props_list.push_back("GET");
+	props["methods"] = props_list;
+	props_list.clear();
+
+	props_list.push_back(temp);
+	props["root"] = props_list;
 	props_list.clear();
 
 	return props;
@@ -21,20 +35,25 @@ static error_page def_errors()
 {
 	error_page errors;
 
-	errors[404] = "./www/errors/404.html";
-	errors[500] = "./www/errors/500.html";
+	errors[404] = "./errors/default/404.html";
+	errors[500] = "./errors/default/500.html";
+	// errors.insert(std::pair<int, std::string>(404, "./errors/default/404.html"));
+	// errors.insert(std::pair<int, std::string>(500, "./errors/default/500.html"));
 	return errors;
 }
 
 Config::Config() 
 {
-	this->properties = def_props();
-	this->error_pages = def_errors();
+	
 }
 
 Config::Config(std::string arg, string locations)
 {
-	Config();
+	this->properties = def_props();
+	this->error_pages = def_errors();
+
+    error_page::const_iterator err_iter = this->error_pages.begin();
+
 	int found = arg.find("server {");
 	int k = (arg[8] == '\n') ? 9 : 8;
 	if (found != arg.npos)
@@ -43,6 +62,8 @@ Config::Config(std::string arg, string locations)
 		arg.erase(arg.end() - 1);
 	if (arg[arg.size() - 1] != '\n')
 		arg.append("\n");
+	int loc_occ = arg.find(locations);
+	arg.erase(loc_occ, locations.length());
 	this->string_to_trim = arg;
 	this->parse_locations(locations, arg);
 }
@@ -148,7 +169,7 @@ void Config::fill_locs_arr1(vector<string> loc_list, string locs)
 		if (temp_pos == locs.npos)
 		{
 			temp_struct.level = 1;
-			temp_struct.loc = locs;
+			temp_struct.loc = locs.substr(0, locs.find('}') - 1);
 			loc_strs.push_back(temp_struct);
 			break;
 		}
@@ -225,6 +246,7 @@ void Config::splitndestroy(string loc, string temp1)
 	}
 	temp_map = loc_temp.get_props();
 	temp_error = loc_temp.get_errors();
+	
 	while(1) 
 	{
 		temp = loc.substr(0, loc.find("\n"));
@@ -262,6 +284,7 @@ void Config::splitndestroy(string loc, string temp1)
 	temp_map.erase(temp_map.begin());
 	loc_temp.set_props(temp_map);
 	loc_temp.set_errors(temp_error);
+	
 	this->locations.push_back(loc_temp);
 }
 
@@ -282,10 +305,13 @@ void Config::fillaret(std::vector<location_str>::iterator iter, Location &temp_l
 	while (i++ < elems)
 	{
 		if (iter != this->loc_strs.begin())
+		{
 			iter--;
+		}
 		if (iter->level > temp_iter->level)
 		{
 			splitndestroy(temp_iter->loc, temp);
+
 			if (iter + 1 == loc_strs.end())
 				break;
 			temp = temp_paths.top() + iter->loc.substr(iter->loc.find(" ") + 1, iter->loc.find('{') - iter->loc.find(" ") - 2);
@@ -296,11 +322,12 @@ void Config::fillaret(std::vector<location_str>::iterator iter, Location &temp_l
 		else
 		{
 			level_diff = temp_iter->level - iter->level + 1;
-			while (level_diff--)
+			while (level_diff-- && temp_paths.size() > 1)
 				temp_paths.pop();
 			splitndestroy(temp_iter->loc, temp);
 			if (iter + 1 == loc_strs.end())
 				break;
+			
 			temp = temp_paths.top() + iter->loc.substr(iter->loc.find(" ") + 1, iter->loc.find('{') - iter->loc.find(" ") - 2);
 			if (temp[temp.size() - 1] == '/')
 				temp.erase(temp.size() - 1);
@@ -315,7 +342,7 @@ void Config::useLocations()
 {
 	Location temp;
 	std::vector<location_str>::iterator iter;
-	
+	int i = 0;
 	while (!this->loc_strs.empty())
 	{
 		iter = find_next_highest(&this->loc_strs);
@@ -329,7 +356,7 @@ const prop_map &Config::get_map()const
 	return this->properties;
 }
 
-error_page Config::get_errors()const
+const error_page &Config::get_errors()const
 {
 	return this->error_pages;
 }
@@ -342,6 +369,7 @@ std::vector<Location> Config::get_locations()const
 void Config::add_error(string key, string arg)
 {
 	int code;
+
 
 	removeSpaces(arg);
 	code = stoi(arg.substr(0, arg.find(' ')));
@@ -380,6 +408,37 @@ void Config::string_to_map()
 		this->string_to_trim.erase(0, this->string_to_trim.find("\n") + 1);
 		if (this->string_to_trim.empty())
 			break;
+	}
+}
+
+void Config::maps_compare(prop_map root, prop_map &child)
+{
+	prop_map::iterator it = root.begin();
+	while(it != root.end())
+	{
+		if(child.find(it->first) == child.end())
+			child[it->first] = it->second;
+		++it;
+	}
+}
+
+void Config::create_root_location()
+{
+	Location root;
+	prop_map child;
+
+	root.set_path("/");
+	root.set_depth(-1);
+	root.set_errors(this->get_errors());
+	root.set_props(this->get_map());
+	this->locations.push_back(root);
+	std::vector<Location>::iterator m = this->locations.begin();
+	while(m->get_path() != "/")
+	{
+		child = m->get_props();
+		this->maps_compare(root.get_props(), child);
+		m->set_props(child);
+		++m;
 	}
 }
 

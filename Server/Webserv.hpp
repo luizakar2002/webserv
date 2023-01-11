@@ -23,7 +23,7 @@
 #include "AFd.hpp"
 
 # define MAX_FD_SIZE 1024
-# define BUFSIZE 1025
+# define BUFSIZE 2000000
 
 class Server;
 class Client;
@@ -53,14 +53,13 @@ class Webserv
 		void	seperate_configs();
 		int		accept_client(struct kevent *);
 		int		request_handler(struct kevent *);
-		void	response_maker(int , Request *);
+		void	response_maker_1(int , Request *, std::vector<Config> &);
 		void	response_maker(int, Request *, std::vector<Config> &);
 		void	start_server();
 		void	run_server();
 		void	change_events(std::vector<struct kevent> &change_list, uintptr_t ident, int16_t filter,
 					uint16_t flags, uint32_t fflags, intptr_t data, void *udata);
 
-		std::vector<struct kevent>& getChangeList();
 		void addFdPool(AFd* res);
 		void deleteFdPool(AFd *res);
 		void signalExit();

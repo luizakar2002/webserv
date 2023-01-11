@@ -12,6 +12,8 @@
 
 using namespace std;
 
+bool    isDirectory(std::string);
+bool    isExist(std::string);
 void	ft_error(int , string );
 int		start_parse(char *, vector<Config> &);
 void	removeSpaces(string &);

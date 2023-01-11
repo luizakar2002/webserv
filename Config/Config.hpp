@@ -35,7 +35,7 @@ class Config{
         
         const prop_map          &get_map()const;
         std::vector<Location>   get_locations()const;
-        error_page              get_errors()const;
+        const error_page        &get_errors()const;
         void                    string_to_map();
         void                    add_error(string key, string arg);
         void                    parse_locations(string locations, string arg);
@@ -48,6 +48,8 @@ class Config{
         void                    splitndestroy(string loc, string temp1);
         Location                jdi_menya(string s);
         void                    add_error_to_location(string key, string arg, Location &loc_temp);
+        void                    create_root_location();
+        void                    maps_compare(prop_map root, prop_map &child);
         
 
         ~Config();

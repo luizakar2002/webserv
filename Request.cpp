@@ -4,14 +4,15 @@ Request::Request()
 {
 }
 
-Request::Request(std::string raw_request): HTTP()
+Request::Request(char *full_b, std::string raw_request): HTTP()
 {
-    this->raw_request = raw_request;
+    this->raw_request = std::string(full_b);
     this->parse_first_line(this->raw_request);
     this->parse_headers(this->raw_request);
+
+
+    // this->full = full_b;
     this->parse_body(this->raw_request);
-    if (this->status_code != 200)
-        std::cout << "Parsing Error with status code " << this->status_code << std::endl;
 }
 
 Request::~Request()
@@ -40,10 +41,11 @@ void    Request::parse_first_line(std::string raw_request)
     this->version = first_line;
     protocol = this->version.substr(this->version.find_first_of('/') + 1);
     if (this->version.substr(0, this->version.find_first_of('/')) != "HTTP")
+    {
         this->status_code = 400; //Bad raw_request
+    }
     if (protocol != "1.0" && protocol != "1.1")
         this->status_code = 403; //Forbidden
-    std::cout << this->method << "\n" << this->uri << "\n" << this->version << std::endl;
 }
 
 void    Request::parse_headers(std::string raw_request)
@@ -72,10 +74,34 @@ void    Request::parse_headers(std::string raw_request)
         std::cout << "{" << it->first << ": " << it->second << "}" << std::endl;
 }
 
+int ft_isdigit(std::string str)
+{
+    if (str.size() == 0)
+        return 0;
+    for (int i = 0; i < str.size(); i++) {
+      if(isdigit(str.at(i)))
+        continue;
+      else
+        return 0;
+   }
+   return 1;
+}
+std::string ft_strtostr(char * full, std::string size)
+{
+    std::string temp = "";
+    size_t size_ = (ft_isdigit(size) ? std::stoi(size) : 0);
+
+    for (size_t i = 0; i < size_; i++)
+    {
+        temp += full[i];
+    }
+    return temp;
+}
+
 void    Request::parse_body(std::string raw_request)
 {
+    // this->body = ft_strtostr(this->full, this->get_headers().find("Content-Length")->second);
     this->body = raw_request.substr(raw_request.find("\r\n\r\n") + 4);
-    std::cout << "body: " << this->body << std::endl;
 }
 
 const std::string &Request::get_raw_request()

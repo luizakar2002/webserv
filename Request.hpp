@@ -11,9 +11,10 @@ class Request: public HTTP
         std::string raw_request;
         std::string method;
         std::string uri;
+        char * full;
         Request();
     public:
-        Request(std::string raw_request);
+        Request(char *, std::string raw_request);
         virtual ~Request();
 
         Request &operator=(const Request &);
@@ -21,6 +22,7 @@ class Request: public HTTP
         const std::string &get_method();
         const std::string &get_uri();
         const std::string &get_version();
+        const std::string &get_host();
         const std::map<std::string, std::string> &get_headers();
         const std::string &get_body();
 

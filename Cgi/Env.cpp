@@ -27,20 +27,25 @@ void Env::set_var(std::string key, std::string val)
 {
     this->vars[key] = val;
 }
-
 char **Env::to_matrix()
 {
     char **envp;
     std::map<std::string, std::string>::iterator iter = this->vars.begin();
     int i = 0;
+    std::string temp;
 
-    envp = new char *[this->vars.size()];
+    envp = new char *[this->vars.size() + 1];
     while (iter != this->vars.end())
     {
-        envp[i] = const_cast<char *>((iter->first + iter->second).c_str());
+        temp = iter->first + "=" + iter->second;
+        envp[i] = new char [temp.size() + 1];
+
+        std::strcpy(envp[i], temp.c_str());
+
         ++i;
         ++iter;
     }
+    envp[i] = NULL;
     return envp;
 }
 

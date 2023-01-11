@@ -21,21 +21,23 @@ private:
     Request     *request;
     Env         env;
     prop_map    props;
+    std::string reponse;
 
     CGI();
 public:
     CGI(std::string, std::string, std::string, Config *, Request *);
     ~CGI();
 
-    std::string     full_file();
     prop_map        hasLocation();
     void            find_abs_path();
-    void            find_exec_file();
-    void            set_env();
+    int            find_exec_file();
+    // void            set_env();
     void            handle_post(int fd);
     void            handle_get();
 
     void            cgi_handler();
+
+    std::string     get_reponse();
 };
 
 #endif

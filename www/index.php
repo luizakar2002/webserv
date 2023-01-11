@@ -1,13 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <link rel="icon" href="data:,">
-</head>
-<body>
-
-<?php 
+<?php
+    var_dump($_POST);
     phpinfo();
-?>
-
-</body>
-</html>

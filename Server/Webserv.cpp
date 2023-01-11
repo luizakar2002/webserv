@@ -136,45 +136,54 @@ int		Webserv::request_handler(struct kevent *curr_event)
 	std::cout << "REQUEST_HANDLER" << std::endl;
 	Client *client = dynamic_cast<Client *>(_fd_pool[curr_event->ident]);
 	client->setLastTime(getTime());
-	char	buf[BUFSIZE];
+	char	*buf = NULL;
 	int 	n;
-	std::string		current_ip_port;
+	std::string		current_ip_port = _fd_ip_port[curr_event->ident];
+	int stoi_val = std::stoi(unique_config_vectors[current_ip_port].at(0).get_map().find("client_max_body_size")->second[0]) + 1;
 
-	memset(buf, 0, BUFSIZE);
-	if ((n = recv(curr_event->ident, buf, BUFSIZE - 1, 0)) == -1)
+	buf = new char [stoi_val];
+	if (buf == NULL)
+		std::cout << "xndir\n";
+	memset(buf, 0, stoi_val);
+	if ((n = recv(curr_event->ident, buf, stoi_val - 1, 0)) == -1)
 	{
 		deleteFdPool(_fd_pool[curr_event->ident]);
 		return -1;
 	}
+	
+
 	if (n == 0)
 		deleteFdPool(_fd_pool[curr_event->ident]);
 	else if (n > 0)
 	{
-		buf[n] = '\0';
+		buf[n + 1] = '\0';
+		// write(1, buf, 1000);
+
 		// client->appendOrigin(buf);
 		// if (client->getClientStatus() == REQUEST_RECEIVING && client->parseRequest())
 		// {
 		// 	client->setClientStatus(MAKE_RESPONSE);
 		// 	// I have to make response here;
 		// }
-		Request *request = new Request(std::string(buf));
+		Request *request = new Request(buf,std::string(buf));
+
 		if (configs.size() > 1)
 		{
 			std::cout << curr_event->ident << std::endl;
 			current_ip_port = _fd_ip_port[curr_event->ident]; //added 14
 			// current_ip_port = _fd_pool[curr_event->ident];
 			std::cout << "ip_port of request: " << current_ip_port << std::endl;
-			std::cout << unique_config_vectors[current_ip_port].at(0).get_map().begin()->first; //just to check that unique_config_vectors[current_ip_port] is accessable
 			response_maker(_fd_pool[curr_event->ident]->getFd(), request, unique_config_vectors[current_ip_port]);
 		}
-		response_maker(_fd_pool[curr_event->ident]->getFd(), request);
+		response_maker_1(_fd_pool[curr_event->ident]->getFd(), request, unique_config_vectors[current_ip_port]);
 	}
 	return 0;
 }
 
-void	Webserv::response_maker(int event_fd, Request *request)
+void	Webserv::response_maker_1(int event_fd, Request *request, std::vector<Config> &configs)
 {
 	Response response = Response(request, *(configs.begin())); // default server
+
     std::cout << response.get_c_response() << "\n\n";
     send(event_fd, response.get_c_response(), strlen(response.get_c_response()), 0);
 	free(request);
@@ -219,7 +228,9 @@ void    Webserv::response_maker(int event_fd, Request *request, std::vector<Conf
 	if (conf != configs.end())
 	{
 		std::cout << "IN IF" << std::endl;
+    	std::cout << conf->get_map().find("listen")->second[0];
 		response = Response(request, *conf);
+		
 		prop_map::const_iterator iterator_on_server_name_of_config = conf->get_map().find("index");
 		std::cout << "INDEX OF CONF: " << *(iterator_on_server_name_of_config->second).begin();
 	}
@@ -278,11 +289,6 @@ void	Webserv::run_server()
 		}
 		usleep(5);
 	}
-}
-
-std::vector<struct kevent>&		Webserv::getChangeList()
-{
-
 }
 
 void	Webserv::addFdPool(AFd* res)
